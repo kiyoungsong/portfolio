@@ -10,6 +10,7 @@ import { closeDetail, openDetail } from '../store/app';
 import { cn } from '../lib/cn';
 
 const wrap = 'mx-auto max-w-[1100px] px-[max(24px,env(safe-area-inset-left,0px))]';
+const railBtn = 'grid size-9 cursor-pointer place-items-center rounded-full bg-card text-xl leading-none text-accent shadow-[0_1px_0_var(--line),0_4px_14px_-8px_rgba(0,0,0,.3)] hover:bg-soft';
 const backBtn = 'cursor-pointer text-[15px] font-semibold whitespace-nowrap text-accent';
 const VER_LINE = ['border-p-sky', 'border-[#ffd9bf]', 'border-[#bfeed3]', 'border-[#dccbff]'];
 
@@ -30,13 +31,19 @@ export function ProjectDetail({ i }: { i: number }) {
   const hasShots = shotsOf(p.id).length > 0;
   const page = useRef<HTMLDivElement>(null);
   const back = useRef<HTMLButtonElement>(null);
+  const rail = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     page.current?.scrollTo({ top: 0 });
+    rail.current?.scrollTo({ left: 0 });
     back.current?.focus({ preventScroll: true });
   }, [i]);
 
-  const others = PROJECTS.map((x, k) => ({ p: x, i: k })).filter((x) => x.i !== i && (x.p.co === p.co || x.p.tag === p.tag)).slice(0, 6);
+  // 같은 회사·분류를 앞에, 나머지는 뒤에 — 전체 프로젝트를 6개씩 넘겨 봐요
+  const rest = PROJECTS.map((x, k) => ({ p: x, i: k })).filter((x) => x.i !== i);
+  const near = (x: { p: (typeof PROJECTS)[number] }) => x.p.co === p.co || x.p.tag === p.tag;
+  const others = [...rest.filter(near), ...rest.filter((x) => !near(x))];
+  const slide = (d: number) => rail.current?.scrollBy({ left: d * rail.current.clientWidth, behavior: 'smooth' });
   const story = p.story ? [...p.story, ...(p.learn ? [['배운 점', p.learn] as [string, string]] : [])] : null;
   const stats: [string, string, string][] = [
     ['역할', p.role.split(' ')[0], p.team],
@@ -164,12 +171,21 @@ export function ProjectDetail({ i }: { i: number }) {
 
         {others.length > 0 && (
           <>
-            <H2>이 개발자의 다른 앱</H2>
-            <div className="grid gap-3 min-[600px]:grid-cols-2 min-[861px]:grid-cols-3">
+            <div className="flex items-end justify-between gap-3">
+              <H2 sub={`${others.length}개`}>이 개발자의 다른 앱</H2>
+              <div className="mb-3.5 flex gap-2">
+                <button type="button" aria-label="이전 목록" onClick={() => slide(-1)} className={railBtn}><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg></button>
+                <button type="button" aria-label="다음 목록" onClick={() => slide(1)} className={railBtn}><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7" /></svg></button>
+              </div>
+            </div>
+            <div
+              ref={rail}
+              className="grid snap-x snap-mandatory auto-cols-[85%] grid-flow-col grid-rows-2 gap-3 overflow-x-auto scroll-smooth pb-3 [scrollbar-width:thin] min-[600px]:auto-cols-[calc((100%-12px)/2)] min-[861px]:auto-cols-[calc((100%-24px)/3)]"
+            >
               {others.map(({ p: o, i: k }) => (
                 <button
                   key={o.id} type="button" onClick={() => openDetail(k)} aria-label={`${o.name} 상세 보기`}
-                  className="group flex min-w-0 cursor-pointer items-start gap-3 rounded-[14px] bg-card p-3.5 text-left shadow-[0_1px_0_var(--line)] transition-transform duration-200 hover:-translate-y-0.5"
+                  className="group flex min-w-0 cursor-pointer snap-start items-start gap-3 rounded-[14px] bg-card p-3.5 text-left shadow-[0_1px_0_var(--line)] transition-transform duration-200 hover:-translate-y-0.5"
                 >
                   <AppIcon p={o} size={48} />
                   <span className="flex min-w-0 flex-1 flex-col gap-0.5">
