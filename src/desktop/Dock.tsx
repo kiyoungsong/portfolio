@@ -1,8 +1,10 @@
-import { useEffect, useRef, type PointerEvent } from 'react';
+import { useEffect, useRef, type PointerEvent, type ReactNode } from 'react';
+import { cn } from '../lib/cn';
 import { desk, type WinId } from '../store/desktop';
 import { goWeb } from '../store/app';
 import { PROFILE } from '../data/profile';
 import { prefersReducedMotion } from '../lib/env';
+import { avatarSrc } from '../components/Avatar';
 
 type DockItem = { id: WinId | 'web'; label: string; icon: JSX.Element } | { sep: true } | { href: string; label: string; icon: JSX.Element };
 
@@ -15,16 +17,17 @@ const DOCK: DockItem[] = [
   { id: 'terminal', label: '터미널', icon: <svg viewBox="0 0 64 64"><rect x="2" y="2" width="60" height="60" rx="14" fill="#2b2b2e" /><path d="M15 24l9 7-9 7" fill="none" stroke="#e8e8ea" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" /><path d="M29 40h18" stroke="#e8e8ea" strokeWidth="3.5" strokeLinecap="round" /></svg> },
   { sep: true },
   { id: 'welcome', label: '보는 방식 고르기', icon: <svg viewBox="0 0 64 64"><rect x="2" y="2" width="60" height="60" rx="14" fill="#fff" /><rect x="10" y="16" width="20" height="32" rx="4" fill="#b9c7ff" /><rect x="13" y="20" width="14" height="10" rx="2" fill="#fff" /><rect x="34" y="16" width="20" height="32" rx="4" fill="#3d8bfd" /><rect x="37" y="21" width="14" height="3" rx="1.5" fill="#fff" /><rect x="37" y="27" width="10" height="3" rx="1.5" fill="#fff" /><rect x="37" y="36" width="14" height="8" rx="2" fill="#fff" opacity=".8" /></svg> },
-  { id: 'about', label: '이 개발자에 관하여', icon: <svg viewBox="0 0 64 64"><rect x="2" y="2" width="60" height="60" rx="14" fill="#7d93ff" /><text x="32" y="41" textAnchor="middle" fontSize="24" fontWeight="800" fill="#fff" fontFamily="-apple-system,sans-serif">KS</text></svg> },
-  { href: PROFILE.github, label: 'GitHub ↗', icon: <svg viewBox="0 0 64 64"><rect x="2" y="2" width="60" height="60" rx="14" fill="#1d1d1f" /><path d="M24 40c-6 2-6-3-9-3m18 7v-5c0-1.5-.5-2.5-1.2-3.2 4.3-.5 8.7-2.1 8.7-9.4 0-2-.7-3.8-2-5.2.2-.5.9-2.5-.2-5.2 0 0-1.6-.5-5.3 2a18 18 0 0 0-9.6 0c-3.7-2.5-5.3-2-5.3-2-1.1 2.7-.4 4.7-.2 5.2a7.4 7.4 0 0 0-2 5.2c0 7.3 4.4 8.9 8.7 9.4-.7.7-1.2 1.7-1.2 3.2v5" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" /></svg> },
+  { id: 'about', label: '이 개발자에 관하여', icon: <svg viewBox="0 0 64 64"><rect x="2" y="2" width="60" height="60" rx="14" fill="#d9e6ff" /><image href={avatarSrc} x="6" y="8" width="52" height="52" /></svg> },
+  { href: PROFILE.github, label: 'GitHub ↗', icon: <svg viewBox="0 0 64 64"><rect x="2" y="2" width="60" height="60" rx="14" fill="#1d1d1f" /><path transform="translate(14 14) scale(1.5)" fill="#fff" d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" /></svg> },
+  { href: PROFILE.blog, label: 'Velog 블로그 ↗', icon: <svg viewBox="0 0 64 64"><rect x="2" y="2" width="60" height="60" rx="14" fill="#20c997" /><path d="M20 21h6l6 18 9-18" fill="none" stroke="#fff" strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" /></svg> },
 ];
 
 function bounce(btn: HTMLElement | null) {
   if (!btn || prefersReducedMotion()) return;
-  btn.classList.remove('bounce');
+  btn.classList.remove('animate-dock-bounce');
   void btn.offsetWidth;
-  btn.classList.add('bounce');
-  window.setTimeout(() => btn.classList.remove('bounce'), 1500);
+  btn.classList.add('animate-dock-bounce');
+  window.setTimeout(() => btn.classList.remove('animate-dock-bounce'), 1500);
 }
 
 /** 마우스 거리에 따라 아이콘이 커지는 독 */
@@ -37,7 +40,7 @@ export function Dock() {
   useEffect(() => {
     (Object.keys(wins) as WinId[]).forEach((k) => {
       if (wins[k].openSeq !== (seqs.current[k] ?? 0)) {
-        if (seqs.current[k] !== undefined) bounce(nav.current?.querySelector(`.d-item[data-id="${k}"] .d-btn`) ?? null);
+        if (seqs.current[k] !== undefined) bounce(nav.current?.querySelector(`[data-dock-id="${k}"] button`) ?? null);
         seqs.current[k] = wins[k].openSeq;
       }
     });
@@ -45,8 +48,8 @@ export function Dock() {
 
   const onMove = (e: PointerEvent) => {
     if (e.pointerType !== 'mouse' || prefersReducedMotion() || !nav.current) return;
-    nav.current.classList.remove('out');
-    nav.current.querySelectorAll<HTMLElement>('.d-btn').forEach((b) => {
+    nav.current.dataset.hover = '';
+    nav.current.querySelectorAll<HTMLElement>('[data-dock-btn]').forEach((b) => {
       const r = b.getBoundingClientRect();
       const d = Math.abs(e.clientX - (r.left + r.width / 2));
       const s = 52 * (1 + 0.7 * Math.max(0, 1 - d / 150));
@@ -54,29 +57,34 @@ export function Dock() {
     });
   };
   const onLeave = () => {
-    nav.current?.classList.add('out');
-    nav.current?.querySelectorAll<HTMLElement>('.d-btn').forEach((b) => (b.style.width = b.style.height = ''));
+    if (nav.current) delete nav.current.dataset.hover;
+    nav.current?.querySelectorAll<HTMLElement>('[data-dock-btn]').forEach((b) => (b.style.width = b.style.height = ''));
   };
 
   return (
-    <nav className="dock out" aria-label="독" ref={nav} onPointerMove={onMove} onPointerLeave={onLeave}>
+    <nav
+      ref={nav}
+      aria-label="독"
+      onPointerMove={onMove}
+      onPointerLeave={onLeave}
+      className="group/dock glass absolute bottom-2 left-1/2 z-[8000] flex -translate-x-1/2 items-end gap-1.5 rounded-[20px] border-[.5px] border-dock-line bg-dock px-2 py-1.5 shadow-[0_10px_30px_rgba(0,0,0,.2)]"
+    >
       {DOCK.map((d, k) => {
-        if ('sep' in d) return <span key={k} className="d-sep" aria-hidden="true" />;
+        if ('sep' in d) return <span key={k} aria-hidden="true" className="mx-1 mt-1 mb-2.5 w-px self-stretch bg-sep" />;
         if ('href' in d)
           return (
-            <span key={k} className="d-item">
-              <a className="d-btn" href={d.href} target="_blank" rel="noopener" aria-label={d.label}>{d.icon}</a>
-              <span className="d-tip" aria-hidden="true">{d.label}</span>
-              <span className="d-dot" />
-            </span>
+            <DockItem key={k} label={d.label}>
+              <a data-dock-btn href={d.href} target="_blank" rel="noopener" aria-label={d.label} className={dockBtn}>{d.icon}</a>
+            </DockItem>
           );
         const run = d.id !== 'web' && wins[d.id].open;
         return (
-          <span key={d.id} className={`d-item${run ? ' run' : ''}`} data-id={d.id}>
+          <DockItem key={d.id} id={d.id} label={d.label} running={run}>
             <button
-              className="d-btn"
+              data-dock-btn
               type="button"
               aria-label={d.label}
+              className={dockBtn}
               onClick={(e) => {
                 if (d.id === 'web') {
                   bounce(e.currentTarget);
@@ -86,11 +94,28 @@ export function Dock() {
             >
               {d.icon}
             </button>
-            <span className="d-tip" aria-hidden="true">{d.label}</span>
-            <span className="d-dot" />
-          </span>
+          </DockItem>
         );
       })}
     </nav>
+  );
+}
+
+/** 마우스를 올리면 커지는 아이콘 (크기는 onMove 에서 직접 지정) */
+const dockBtn =
+  'peer block size-[52px] p-0 transition-[width,height] duration-250 ease-out group-data-hover/dock:duration-120 motion-reduce:transition-none [&>svg]:block [&>svg]:size-full [&>svg]:drop-shadow-[0_2px_3px_rgba(0,0,0,.25)]';
+
+function DockItem({ id, label, running, children }: { id?: string; label: string; running?: boolean; children: ReactNode }) {
+  return (
+    <span data-dock-id={id} className="relative flex flex-col items-center">
+      {children}
+      <span
+        aria-hidden="true"
+        className="glass pointer-events-none absolute bottom-[calc(100%+14px)] left-1/2 -translate-x-1/2 rounded-md border-[.5px] border-menu-line bg-menu px-2.5 py-[3px] text-[12.5px] whitespace-nowrap opacity-0 shadow-[0_4px_14px_rgba(0,0,0,.2)] transition-opacity duration-120 peer-hover:opacity-100 peer-focus-visible:opacity-100"
+      >
+        {label}
+      </span>
+      <span className={cn('mt-[3px] size-1 rounded-full', running ? 'bg-ink' : 'bg-transparent')} />
+    </span>
   );
 }

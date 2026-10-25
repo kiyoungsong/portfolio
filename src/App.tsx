@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { app, closeDetail, goWeb, openDetail } from './store/app';
+import { app, closeDetail, detailFromHash, goWeb, onPopState, openDetail } from './store/app';
 import { desk } from './store/desktop';
 import { PROJECTS } from './data/projects';
 import { PHONE_QUERY } from './lib/env';
@@ -19,13 +19,26 @@ export default function App() {
     desk.layout();
     const hash = location.hash.slice(1);
     if (window.matchMedia(PHONE_QUERY).matches || hash === 'web' || hash.startsWith('project-')) {
+      const i = detailFromHash(); // goWeb 이 주소를 #web 으로 바꾸기 전에 읽어 둬요
       void goWeb(null);
-      const m = /^project-(\d+)$/.exec(hash);
-      if (m && PROJECTS[+m[1]]) openDetail(+m[1]);
+      if (i !== null) {
+        app.set({ detail: i });
+        try {
+          history.replaceState({ detail: i }, '', `#project-${PROJECTS[i].id}`);
+        } catch {
+          /* noop */
+        }
+      }
     } else if (hash === 'desk') {
       app.set({ mode: 'desk' });
       desk.startDesk(false);
     } else desk.openWin('welcome');
+  }, []);
+
+  // 브라우저 뒤로가기로 프로젝트 상세 닫기
+  useEffect(() => {
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
   }, []);
 
   // 화면이 휴대폰 폭으로 줄면 웹페이지로

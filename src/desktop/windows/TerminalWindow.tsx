@@ -4,12 +4,12 @@ import { desk } from '../../store/desktop';
 import { goWeb } from '../../store/app';
 import { PROJECTS } from '../../data/projects';
 
-const Prompt = () => (<><span className="p">kai@portfolio</span> <span className="b">~</span> %</>);
+const Prompt = () => (<><span className="text-term-green">kai@portfolio</span> <span className="text-term-blue">~</span> %</>);
 
 export function TerminalWindow() {
   const [lines, setLines] = useState<ReactNode[]>([
     'Last login: 오늘 · kaiOS 7.26',
-    <span style={{ color: '#8d8d93' }}>help 를 입력하면 쓸 수 있는 명령이 나와요.</span>,
+    <span className="text-[#8d8d93]">help 를 입력하면 쓸 수 있는 명령이 나와요.</span>,
   ]);
   const [value, setValue] = useState('');
   const hist = useRef<string[]>([]);
@@ -35,7 +35,7 @@ export function TerminalWindow() {
       if (c === 'clear') return setLines([]);
       if (c === 'help') out.push('명령: whoami · ls · open <이름> · skills · web · clear');
       else if (c === 'whoami') out.push(<>송기영 (Kai Song) · 웹 개발자 · 7년차<br />PLC → OPC UA → MQTT → Web → App → AI</>);
-      else if (c === 'ls') out.push(<>{PROJECTS.map((p) => <span key={p.id} className="b">{p.id}/&nbsp;&nbsp; </span>)}</>);
+      else if (c === 'ls') out.push(<>{PROJECTS.map((p) => <span key={p.id} className="text-term-blue">{p.id}/&nbsp;&nbsp; </span>)}</>);
       else if (c === 'open') {
         const i = PROJECTS.findIndex((p) => p.id === arg || (!!arg && p.name.toLowerCase().includes(arg)));
         if (i >= 0) {
@@ -53,16 +53,17 @@ export function TerminalWindow() {
   };
 
   return (
-    <Window id="terminal" label="터미널" className="term-win" thin
-      toolbar={<span className="tb-title" style={{ margin: '0 auto' }}>kai — zsh — 80×24</span>}>
-      <div className="term" ref={term} onClick={() => !getSelection()?.toString() && input.current?.focus()}>
+    <Window id="terminal" label="터미널" thin dark
+      toolbar={<span className="mx-auto truncate text-[13px] font-bold">kai — zsh — 80×24</span>}>
+      <div ref={term} className="sel-text flex-1 overflow-auto bg-term px-3.5 py-3 font-mono text-[12.5px] leading-[1.6] text-term-ink" onClick={() => !getSelection()?.toString() && input.current?.focus()}>
         <div>{lines.map((l, k) => <div key={k}>{l}</div>)}</div>
-        <div className="term-line">
+        <div className="flex items-center gap-2">
           <span><Prompt /></span>
-          <label className="sr" htmlFor="termIn">명령 입력</label>
+          <label className="sr-only" htmlFor="termIn">명령 입력</label>
           <input
             id="termIn"
             ref={input}
+            className="min-w-0 flex-1 bg-transparent font-mono text-[12.5px] text-term-ink caret-term-green outline-none"
             autoComplete="off"
             spellCheck={false}
             value={value}

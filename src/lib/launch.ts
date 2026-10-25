@@ -2,9 +2,12 @@
 export function launchFrom(r: DOMRect): Promise<void> {
   return new Promise((resolve) => {
     const l = document.createElement('div');
-    l.className = 'launch';
-    l.innerHTML =
-      '<div class="lbar"><span class="lights" style="pointer-events:none"><span class="light c"></span><span class="light m"></span><span class="light z"></span></span><div class="addr">kaisong · portfolio</div></div>';
+    l.className = 'fixed z-[9990] flex flex-col overflow-hidden rounded-xl bg-[#fffdf8] shadow-win-active';
+    const dot = 'size-3 rounded-full';
+    l.innerHTML = `<div class="flex h-11 flex-none items-center gap-3 border-b border-sep bg-toolbar px-3.5">
+      <span class="pointer-events-none flex gap-2"><span class="${dot} bg-[#ff5f57]"></span><span class="${dot} bg-[#febc2e]"></span><span class="${dot} bg-[#28c840]"></span></span>
+      <div class="mx-auto grid h-[26px] max-w-[420px] flex-1 place-items-center rounded-[7px] bg-field text-[12.5px] text-ink-2">kaisong · portfolio</div>
+    </div>`;
     Object.assign(l.style, { left: r.left + 'px', top: r.top + 'px', width: r.width + 'px', height: r.height + 'px' });
     document.body.appendChild(l);
     const done = () => {
