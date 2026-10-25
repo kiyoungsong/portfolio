@@ -24,7 +24,12 @@ export function Desktop({ hidden }: { hidden: boolean }) {
   }, []);
 
   return (
-    <div id="desk" aria-hidden={hidden || undefined} onClick={(e) => e.target === e.currentTarget && setSelected(null)}>
+    <div
+      id="desk"
+      aria-hidden={hidden || undefined}
+      onClick={(e) => e.target === e.currentTarget && setSelected(null)}
+      className="relative h-full min-h-[640px] overflow-hidden select-none bg-wall bg-[radial-gradient(60%_70%_at_12%_88%,var(--w1)_0,transparent_70%),radial-gradient(55%_60%_at_88%_18%,var(--w4)_0,transparent_70%),radial-gradient(50%_55%_at_60%_70%,var(--w2)_0,transparent_70%),radial-gradient(70%_70%_at_30%_10%,var(--w5)_0,transparent_70%)]"
+    >
       <MenuBar />
       <DesktopIcons selected={selected} onSelect={setSelected} />
       <div id="wins">

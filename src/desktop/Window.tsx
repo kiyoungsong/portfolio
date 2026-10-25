@@ -1,4 +1,5 @@
 import { useLayoutEffect, useRef, type CSSProperties, type PointerEvent, type ReactNode } from 'react';
+import { cn } from '../lib/cn';
 import { desk, type WinId } from '../store/desktop';
 import { prefersReducedMotion } from '../lib/env';
 
@@ -12,15 +13,19 @@ interface Props {
   zoomable?: boolean;
   resizable?: boolean;
   children: ReactNode;
+  /** 창 밖으로 살짝 걸쳐 그리는 장식 */
+  decoration?: ReactNode;
+  /** 터미널처럼 어두운 타이틀바 */
+  dark?: boolean;
 }
 
 const dockCenter = (id: WinId) => {
-  const b = document.querySelector(`.d-item[data-id="${id}"] .d-btn`) ?? document.querySelector('.d-item[data-id="finder"] .d-btn');
+  const b = document.querySelector(`[data-dock-id="${id}"] button`) ?? document.querySelector('[data-dock-id="finder"] button');
   return b?.getBoundingClientRect() ?? null;
 };
 
 /** 신호등 버튼, 드래그, 리사이즈, 최소화(독으로 빨려 들어가는) 애니메이션을 가진 macOS 창 */
-export function Window({ id, label, className = '', toolbar, thin, zoomable = true, resizable = true, children }: Props) {
+export function Window({ id, label, className, toolbar, thin, zoomable = true, resizable = true, children, decoration, dark }: Props) {
   const s = desk.useStore((st) => st.wins[id]);
   const active = desk.useStore((st) => st.active === id);
   const el = useRef<HTMLElement>(null);
@@ -31,9 +36,9 @@ export function Window({ id, label, className = '', toolbar, thin, zoomable = tr
   // 열릴 때 팝 애니메이션
   useLayoutEffect(() => {
     if (!s.openSeq || prefersReducedMotion() || !el.current) return;
-    el.current.classList.remove('anim');
+    el.current.classList.remove('animate-win-open');
     void el.current.offsetWidth;
-    el.current.classList.add('anim');
+    el.current.classList.add('animate-win-open');
   }, [s.openSeq]);
 
   // 독에서 복원될 때 독 위치에서 커지며 나타남
@@ -80,7 +85,7 @@ export function Window({ id, label, className = '', toolbar, thin, zoomable = tr
     const t = e.target as HTMLElement;
     const grip = t.closest('[data-grip]');
     const bar = t.closest('[data-drag]');
-    if (!grip && (!bar || t.closest('button,input,a,.seg,label'))) return;
+    if (!grip && (!bar || t.closest('button,input,a,[data-seg],label'))) return;
     const cur = desk.get().wins[id];
     drag.current = { grip: !!grip, sx: e.clientX, sy: e.clientY, ox: cur.x, oy: cur.y, ow: cur.w, oh: cur.h };
     (grip ?? bar)!.setPointerCapture(e.pointerId);
@@ -105,31 +110,67 @@ export function Window({ id, label, className = '', toolbar, thin, zoomable = tr
   return (
     <section
       ref={el}
-      className={`win ${className}${active ? ' active' : ''}`}
       data-win={id}
+      data-active={active || undefined}
       aria-label={label}
       hidden={!s.open || s.min}
       style={style}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
+      className={cn(
+        'absolute flex min-h-[200px] min-w-[300px] flex-col rounded-xl bg-win motion-reduce:animate-none',
+        active ? 'shadow-win-active' : 'shadow-win',
+        decoration ? 'overflow-visible' : 'overflow-hidden',
+        className,
+      )}
     >
-      <div className={`tb${thin ? ' thin' : ''}`} data-drag onDoubleClick={(e) => !(e.target as HTMLElement).closest('button,input,.seg') && zoom()}>
-        <div className="lights">
-          <button className="light c" type="button" aria-label={`${label} 닫기`} onClick={() => desk.closeWin(id)}>
-            <svg viewBox="0 0 8 8"><path d="M1.5 1.5l5 5M6.5 1.5l-5 5" stroke="#4d0000" strokeWidth="1.2" /></svg>
-          </button>
-          <button className="light m" type="button" aria-label={`${label} 최소화`} onClick={minimize}>
-            <svg viewBox="0 0 8 8"><path d="M1 4h6" stroke="#5a3a00" strokeWidth="1.3" /></svg>
-          </button>
-          <button className="light z" type="button" aria-label={zoomable ? `${label} 확대` : '확대 안 됨'} disabled={!zoomable} onClick={zoom}>
-            <svg viewBox="0 0 8 8"><path d="M1.5 6.5V2.5h4zM6.5 1.5v4h-4z" fill="#0a4a00" /></svg>
-          </button>
+      {decoration}
+      <div
+        data-drag
+        onDoubleClick={(e) => !(e.target as HTMLElement).closest('button,input,[data-seg]') && zoom()}
+        className={cn(
+          'flex flex-none touch-none items-center gap-3 border-b px-3.5',
+          thin ? 'h-[38px]' : 'h-[52px]',
+          dark ? 'border-white/8 bg-[#2b2b2e] text-[#d7d7db]' : 'border-sep bg-toolbar',
+          !!decoration && 'rounded-t-xl',
+        )}
+      >
+        <div className="group/lights flex flex-none gap-2">
+          <Light active={active} tone="c" label={`${label} 닫기`} onClick={() => desk.closeWin(id)}>
+            <path d="M1.5 1.5l5 5M6.5 1.5l-5 5" stroke="#4d0000" strokeWidth="1.2" />
+          </Light>
+          <Light active={active} tone="m" label={`${label} 최소화`} onClick={minimize}>
+            <path d="M1 4h6" stroke="#5a3a00" strokeWidth="1.3" />
+          </Light>
+          <Light active={active} tone="z" label={zoomable ? `${label} 확대` : '확대 안 됨'} disabled={!zoomable} onClick={zoom}>
+            <path d="M1.5 6.5V2.5h4zM6.5 1.5v4h-4z" fill="#0a4a00" />
+          </Light>
         </div>
         {toolbar}
       </div>
-      <div className="body">{children}</div>
-      {resizable && <span className="grip" data-grip />}
+      <div className={cn('flex min-h-0 flex-1 overflow-hidden', !!decoration && 'rounded-b-xl')}>{children}</div>
+      {resizable && <span data-grip className="absolute right-0 bottom-0 size-4 cursor-nwse-resize touch-none" />}
     </section>
+  );
+}
+
+/** 신호등 버튼 — 비활성 창에서는 회색, 마우스를 올리면 색과 기호가 보여요 */
+const LIGHT = {
+  c: { on: 'bg-[#ff5f57]', off: 'bg-light-off group-hover/lights:bg-[#ff5f57]' },
+  m: { on: 'bg-[#febc2e]', off: 'bg-light-off group-hover/lights:bg-[#febc2e]' },
+  z: { on: 'bg-[#28c840]', off: 'bg-light-off group-hover/lights:bg-[#28c840]' },
+};
+function Light({ tone, active, label, disabled, onClick, children }: { tone: keyof typeof LIGHT; active: boolean; label: string; disabled?: boolean; onClick: () => void; children: ReactNode }) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      disabled={disabled}
+      onClick={onClick}
+      className={cn('grid size-3 place-items-center rounded-full p-0 shadow-[inset_0_0_0_.5px_rgba(0,0,0,.18)]', active ? LIGHT[tone].on : LIGHT[tone].off)}
+    >
+      <svg viewBox="0 0 8 8" className="size-2 opacity-0 group-focus-within/lights:opacity-65 group-hover/lights:opacity-65">{children}</svg>
+    </button>
   );
 }

@@ -24,6 +24,8 @@ function search(q: string, web: boolean): Hit[] {
   return r.slice(0, 12);
 }
 
+const grp = 'px-2.5 pt-1.5 pb-0.5 text-[11px] font-bold text-ink-3';
+
 /** ⌘K / Ctrl+K 검색 */
 export function Spotlight({ phone }: { phone: boolean }) {
   const mode = app.useStore((s) => s.mode);
@@ -42,15 +44,16 @@ export function Spotlight({ phone }: { phone: boolean }) {
   let group = '';
 
   return (
-    <div id="spotHost">
-      <div className="spot-bg" onPointerDown={close} />
-      <div className="spot" role="dialog" aria-label="검색">
-        <div className="spot-in">
+    <div>
+      <div className="fixed inset-0 z-[9800]" onPointerDown={close} />
+      <div role="dialog" aria-label="검색" className="fixed top-[18%] left-1/2 z-[9900] w-[min(640px,calc(100%-32px))] -translate-x-1/2 overflow-hidden rounded-[14px] border-[.5px] border-menu-line bg-menu shadow-[0_30px_80px_rgba(0,0,0,.35)] backdrop-blur-[40px] backdrop-saturate-180">
+        <div className="flex items-center gap-2.5 px-4 py-3">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" style={{ color: 'var(--text3)' }}><circle cx="10.5" cy="10.5" r="6.5" /><path d="m20 20-4.6-4.6" /></svg>
-          <label className="sr" htmlFor="spotIn">검색</label>
+          <label className="sr-only" htmlFor="spotIn">검색</label>
           <input
             id="spotIn"
             ref={input}
+            className="min-w-0 flex-1 bg-transparent text-[22px] font-light outline-none"
             placeholder="프로젝트, 메모, 기술 검색"
             autoComplete="off"
             value={q}
@@ -62,16 +65,16 @@ export function Spotlight({ phone }: { phone: boolean }) {
             }}
           />
         </div>
-        <div className="spot-res" role="listbox">
-          {!items.length && <div className="grp">결과 없음</div>}
+        <div role="listbox" className="max-h-[340px] overflow-auto border-t border-sep p-1.5">
+          {!items.length && <div className={grp}>결과 없음</div>}
           {items.map((h, i) => {
-            const head = h.g !== group ? <div className="grp">{h.g}</div> : null;
+            const head = h.g !== group ? <div className={grp}>{h.g}</div> : null;
             group = h.g;
             return (
               <div key={h.g + h.label} style={{ display: 'contents' }}>
                 {head}
-                <button type="button" role="option" aria-selected={i === sel} onClick={() => run(h)}>
-                  <span>{h.label}</span><small>{h.meta}</small>
+                <button type="button" role="option" aria-selected={i === sel} onClick={() => run(h)} className="group flex w-full items-center gap-2.5 rounded-[7px] px-2.5 py-[7px] text-left aria-selected:bg-accent aria-selected:text-white">
+                  <span>{h.label}</span><small className="ml-auto whitespace-nowrap text-ink-3 group-aria-selected:text-white">{h.meta}</small>
                 </button>
               </div>
             );
