@@ -949,7 +949,7 @@ export const PROJECTS: Project[] = [
     did: [
       [
         "PLC 드라이버 개발",
-        "LS(FEnet)·Yaskawa(Memobus)·Omron(FINS)·Mitsubishi(MC)·Bluetooth(CISS) 통신 드라이버 개발을 이끌었습니다.",
+        "LS(FEnet), Yaskawa(Memobus), Omron(FINS), Mitsubishi(MC), Bluetooth(CISS) 통신 드라이버 개발을 이끌었습니다.",
       ],
       [
         "빌드 없는 확장 구조",
