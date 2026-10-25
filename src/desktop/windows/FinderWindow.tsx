@@ -94,8 +94,8 @@ export function FinderWindow() {
     >
       <nav aria-label="분류" className="flex w-[184px] flex-none flex-col gap-0.5 overflow-auto bg-sidebar px-2 py-2.5 backdrop-blur-[20px]">
         <h4 className={sideHead}>즐겨찾기</h4>
-        {side('all', '모든 프로젝트', ICO.all)}
         {side('feat', '대표 프로젝트', ICO.feat)}
+        {side('all', '모든 프로젝트', ICO.all)}
         <h4 className={sideHead}>회사</h4>
         {(Object.entries(CO) as [CompanyId, string][]).map(([k, v]) => side(`co:${k}`, v, ICO.co))}
         <h4 className={sideHead}>태그</h4>
