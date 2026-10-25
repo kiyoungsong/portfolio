@@ -25,7 +25,7 @@ const Did = ({ p }: { p: Project }) => (
       {p.did.map(([title, detail]) => (
         <li key={title} className="flex gap-2.5 border-b border-sep px-3.5 py-2.5 last:border-b-0">
           <span aria-hidden="true" className="mt-[9px] size-1.5 flex-none rounded-full bg-accent" />
-          <div>
+          <div className="min-w-0 [overflow-wrap:anywhere]">
             <b className="block text-[14px]">{title}</b>
             <span className="text-[13.5px] text-ink-2">{detail}</span>
           </div>
@@ -41,9 +41,11 @@ function Section({ p, tab }: { p: Project; tab: string }) {
       <>
         <Sec title="개요">{p.over.map((x) => <p key={x} className="max-w-[62ch]">{x}</p>)}</Sec>
         <Did p={p} />
-        <Sec title="화면">
-          <ShotStrip key={p.id} id={p.id} height="h-[200px]" />
-        </Sec>
+        {shotsOf(p.id).length > 0 && (
+          <Sec title="화면">
+            <ShotStrip key={p.id} id={p.id} height="h-[200px]" />
+          </Sec>
+        )}
       </>
     );
   if (tab === '구조' && p.arch) return <Sec title="구조"><ArchDiagram k={p.arch} /></Sec>;

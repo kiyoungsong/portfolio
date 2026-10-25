@@ -5,7 +5,7 @@ import { Explainer } from '../components/Explainer';
 import { ArchDiagram } from '../components/ArchDiagram';
 import { ShotStrip } from '../components/Shots';
 import { linksOf, NO_LINK } from '../data/links';
-import { ProjectRow } from './ProjectRow';
+import { shotsOf } from '../data/shots';
 import { closeDetail, openDetail } from '../store/app';
 import { cn } from '../lib/cn';
 
@@ -27,6 +27,7 @@ export function ProjectDetail({ i }: { i: number }) {
   const prev = (i - 1 + n) % n;
   const next = (i + 1) % n;
   const links = linksOf(p.id);
+  const hasShots = shotsOf(p.id).length > 0;
   const page = useRef<HTMLDivElement>(null);
   const back = useRef<HTMLButtonElement>(null);
 
@@ -100,17 +101,21 @@ export function ProjectDetail({ i }: { i: number }) {
           ))}
         </div>
 
-        <H2>미리보기</H2>
-        <ShotStrip key={p.id} id={p.id} />
+        {hasShots && (
+          <>
+            <H2>미리보기</H2>
+            <ShotStrip key={p.id} id={p.id} />
+          </>
+        )}
 
         <div className="mt-10 grid gap-9 min-[861px]:grid-cols-2">
-          <div className="rounded-[18px] bg-p-mint px-[22px] pt-1 pb-[18px] shadow-[0_1px_0_var(--line)]">
+          <div className="min-w-0 rounded-[18px] bg-p-mint px-[22px] pt-1 pb-[18px] shadow-[0_1px_0_var(--line)]">
             <H2 sub="제가 한 일">새로운 기능</H2>
             <ul className="flex flex-col gap-3">
               {p.did.map(([title, detail]) => (
                 <li key={title} className="flex gap-2.5">
                   <span aria-hidden="true" className="mt-[9px] size-1.5 flex-none rounded-full bg-accent" />
-                  <div>
+                  <div className="min-w-0 [overflow-wrap:anywhere]">
                     <b className="block text-[15.5px] leading-snug">{title}</b>
                     <span className="mt-0.5 block text-[14.5px] leading-relaxed text-ink-2">{detail}</span>
                   </div>
@@ -118,7 +123,7 @@ export function ProjectDetail({ i }: { i: number }) {
               ))}
             </ul>
           </div>
-          <div className="rounded-[18px] bg-card px-[22px] pt-1 pb-[18px] shadow-[0_1px_0_var(--line)]">
+          <div className="min-w-0 rounded-[18px] bg-card px-[22px] pt-1 pb-[18px] shadow-[0_1px_0_var(--line)]">
             <H2>앱 설명</H2>
             {p.over.map((x) => <p key={x} className="mb-2.5 max-w-[64ch] text-[15.5px] leading-[1.7]">{x}</p>)}
           </div>
@@ -160,8 +165,20 @@ export function ProjectDetail({ i }: { i: number }) {
         {others.length > 0 && (
           <>
             <H2>이 개발자의 다른 앱</H2>
-            <div className="grid auto-cols-[minmax(240px,1fr)] grid-flow-col gap-3.5 overflow-x-auto pb-1.5">
-              {others.map(({ p: o, i: k }) => <ProjectRow key={o.id} p={o} i={k} pad="p-3" className="rounded-[14px] bg-card shadow-[0_1px_0_var(--line)]" />)}
+            <div className="grid gap-3 min-[600px]:grid-cols-2 min-[861px]:grid-cols-3">
+              {others.map(({ p: o, i: k }) => (
+                <button
+                  key={o.id} type="button" onClick={() => openDetail(k)} aria-label={`${o.name} 상세 보기`}
+                  className="group flex min-w-0 cursor-pointer items-start gap-3 rounded-[14px] bg-card p-3.5 text-left shadow-[0_1px_0_var(--line)] transition-transform duration-200 hover:-translate-y-0.5"
+                >
+                  <AppIcon p={o} size={48} />
+                  <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                    <b className="text-[15px] leading-snug group-hover:text-accent">{o.name}</b>
+                    <span className="line-clamp-2 text-[13px] leading-snug text-ink-2">{o.one}</span>
+                    <span className="mt-0.5 text-xs text-ink-3">{PLATFORM[o.tag]} · {o.year}</span>
+                  </span>
+                </button>
+              ))}
             </div>
           </>
         )}
