@@ -1,0 +1,5 @@
+@media (prefers-reduced-motion: reduce){
+  .win.anim,.pop,.bounce,#web.enter,.dpage,.rv.in{animation:none}
+  .d-btn,.dock.out .d-btn,.choice,.wc,.wbtn,.wchip,.to-desk{transition:none}
+  #web{scroll-behavior:auto}
+}
